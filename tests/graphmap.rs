@@ -367,8 +367,15 @@ fn create_from_ops(path: impl AsRef<Path>) -> DiGraphMap<usize, ()> {
 }
 
 #[test]
-fn all_simple_paths_should_not_hang() {
+fn all_simple_paths_should_not_hang_1() {
     let graph = create_from_ops("tests/res/graphmap_hang_1.txt");
+
+    let _: Vec<Vec<_>> = all_simple_paths(&graph, 208, 195, 0, None).collect();
+}
+
+#[test]
+fn all_simple_paths_should_not_hang_2() {
+    let graph = create_from_ops("tests/res/graphmap_hang_2.txt");
 
     let _: Vec<Vec<_>> = all_simple_paths(&graph, 208, 195, 0, None).collect();
 }
