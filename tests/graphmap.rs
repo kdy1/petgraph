@@ -3,7 +3,10 @@ extern crate petgraph;
 
 use std::collections::HashSet;
 use std::fmt;
+use std::fs::read_to_string;
+use std::path::Path;
 
+use petgraph::algo::all_simple_paths;
 use petgraph::prelude::*;
 use petgraph::visit::Walker;
 
@@ -334,4 +337,38 @@ fn self_loops_can_be_removed() {
 
     assert_eq!(graph.neighbors_directed((), Outgoing).next(), None);
     assert_eq!(graph.neighbors_directed((), Incoming).next(), None);
+}
+
+fn create_from_ops(path: impl AsRef<Path>) -> DiGraphMap<usize, ()> {
+    let mut graph = DiGraphMap::new();
+
+    let operations = read_to_string(path).unwrap();
+
+    for line in operations.lines() {
+        if line.starts_with("[Add]") {
+            graph.add_node(line.replace("[Add]", "").parse::<usize>().unwrap());
+        } else if line.starts_with("[Remove]") {
+            graph.remove_node(line.replace("[Remove]", "").parse::<usize>().unwrap());
+        } else if line.starts_with("[Edge]") {
+            let s = line.replace("[Edge]", "");
+            let mut arr = s.split(',');
+            let a = arr.next().unwrap().parse::<usize>().unwrap();
+            let b = arr.next().unwrap().parse::<usize>().unwrap();
+            graph.add_edge(a, b, ());
+            assert_eq!(arr.next(), None);
+        } else {
+            unreachable!("Unknown op: {:?}", line)
+        }
+    }
+
+    eprintln!("All graph operations are appplied");
+
+    graph
+}
+
+#[test]
+fn all_simple_paths_should_not_hang() {
+    let graph = create_from_ops("tests/res/graphmap_hang_1.txt");
+
+    let _: Vec<Vec<_>> = all_simple_paths(&graph, 208, 195, 0, None).collect();
 }
